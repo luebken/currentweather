@@ -21,7 +21,8 @@ http.createServer(function (req, res) {
           var weather_new = weatherjson.weather[0].description;
           res.writeHead(200, {'Content-Type': 'text/plain'});
           res.end('Hello World from Cologne: ' + weather_new + '\n');
-          client.set('currentweather', weather_new)
+          client.set('currentweather', weather_new);
+          client.expire('currentweather', 60);
         });
       }).on('error', function(e) {
         console.log("Got error: ", e);
