@@ -19,19 +19,23 @@ http.createServer(function (req, res) {
         res2.on('end', function() {
           var weatherjson = JSON.parse(body);
           var weather_new = weatherjson.weather[0].description;
-          res.writeHead(200, {'Content-Type': 'text/plain'});
-          res.end('Hello World from Cologne: ' + weather_new + '\n');
           client.set('currentweather', weather_new);
           client.expire('currentweather', 60);
+          writeResponse(res, weather_new);
         });
       }).on('error', function(e) {
         console.log("Got error: ", e);
       });
     } else {
       console.log('using cached weather data');
-      res.writeHead(200, {'Content-Type': 'text/plain'});
-      res.end('Hello World from Cologne: ' + weather + '\n');
+      writeResponse(res, weather);
     }
   })
 }).listen(1337, '0.0.0.0');
+
+function writeResponse(res, weather) {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Hello World from Cologne: ' + weather + '\n');
+}
+
 console.log('Server running at http://0.0.0.0:1337/');
