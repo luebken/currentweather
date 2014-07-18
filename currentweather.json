@@ -7,11 +7,11 @@
                 {
                     "component_name": "currentweather-component",
                     "image": "luebken/currentweather",
-                    "ports": [ "80/tcp" ],
+                    "ports": [ "1337/tcp" ],
                     "dependencies": [
                         { "name": "redis", "port": 6379 }
                     ],
-                    "domains": { "currentweather.cluster-matthias-02.giantswarm.io": "80" }
+                    "domains": { "currentweather.cluster-matthias-02.giantswarm.io": "1337" }
                 },
                 {
                     "component_name": "redis",
