@@ -4,6 +4,10 @@ FROM dockerfile/nodejs
 #Dont want to rely on VOLUME
 WORKDIR /root
 
+ADD package.json /root/
+
+RUN npm install
+
 ADD server.js /root/
 
 EXPOSE 1337

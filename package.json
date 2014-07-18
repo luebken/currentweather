@@ -1,0 +1,6 @@
+{
+  "name": "currentweather",
+  "dependencies": {
+    "redis": "*"
+  }
+}
