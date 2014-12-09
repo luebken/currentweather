@@ -11,7 +11,7 @@
                     "dependencies": [
                         { "name": "redis", "port": 6379 }
                     ],
-                    "domains": { "currentweather.alpha.giantswarm.io": "1337" }
+                    "domains": { "currentweather.gigantic.io": "1337" }
                 },
                 {
                     "component_name": "redis",
