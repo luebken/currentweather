@@ -1,5 +1,5 @@
 PROJECT=currentweather
-COMPANY=giantswarm
+COMPANY=luebken
 REGISTRY=registry.giantswarm.io
 
 default: ;
@@ -11,3 +11,9 @@ build:
 run:
 	docker run -d --name redis redis
 	docker run  -i -p 1337:1337 --link redis:redis $(REGISTRY)/$(COMPANY)/$(PROJECT)
+
+pull:
+	docker pull $(REGISTRY)/$(COMPANY)/$(PROJECT)
+
+push:
+	docker push $(REGISTRY)/$(COMPANY)/$(PROJECT)
