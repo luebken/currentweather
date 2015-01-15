@@ -1,41 +1,45 @@
-var http = require('http');
-var redis = require('redis');
+var http = require("http");
+var redis = require("redis");
 
-var addr = process.env.REDIS_PORT_6379_TCP_ADDR;
-var port = process.env.REDIS_PORT_6379_TCP_PORT;
+var redisAddress = process.env.REDIS_PORT_6379_TCP_ADDR,
+  redisPort = process.env.REDIS_PORT_6379_TCP_PORT,
+  httpAddress = "0.0.0.0",
+  httpPort = "1337";
 
-client = redis.createClient(port, addr);
+client = redis.createClient(redisPort, redisAddress);
 
-http.createServer(function (req, res) {
-  client.get("currentweather", function (err, weather) {
-    if(weather == null) {
-      console.log('querying live weather data');
+http.createServer(function (request, response) {
+  client.get("currentweather", function (err, weatherString) {
+    if (weatherString == null) {
+      console.log("Querying live weather data");
       var url = "http://api.openweathermap.org/data/2.5/weather?q=Cologne";
-      http.get(url, function(res2) {
-        var body = '';
-        res2.on('data', function(chunk) {
+      http.get(url, function(apiResponse) {
+        var body = "";
+        apiResponse.on("data", function(chunk) {
           body += chunk;
         });
-        res2.on('end', function() {
-          var weatherjson = JSON.parse(body);
-          var weather_new = weatherjson.weather[0].description;
-          client.set('currentweather', weather_new);
-          client.expire('currentweather', 60);
-          writeResponse(res, weather_new);
+        apiResponse.on("end", function() {
+          var weather = JSON.parse(body);
+          weatherString = weather.weather[0].description;
+          weatherString += ", temperature " + Math.round(weather.main.temp - 273);
+          weatherString += " degrees, wind " + Math.round(weather.wind.speed * 3.6) +  " km/h"
+          client.set("currentweather", weatherString);
+          client.expire("currentweather", 60);
+          writeResponse(response, weatherString);
         });
-      }).on('error', function(e) {
+      }).on("error", function(e) {
         console.log("Got error: ", e);
       });
     } else {
-      console.log('using cached weather data');
-      writeResponse(res, weather);
+      console.log("Using cached weather data");
+      writeResponse(response, weatherString);
     }
-  })
-}).listen(1337, '0.0.0.0');
+  });
+}).listen(httpPort, httpAddress);
 
 function writeResponse(res, weather) {
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end('Hello World from Cologne: ' + weather + '\n');
+  res.writeHead(200, {"Content-Type": "text/html"});
+  res.end("Current weather in Cologne: " + weather + "\n");
 }
 
-console.log('Server running at http://0.0.0.0:1337/');
+console.log("Server running at http://" + httpAddress + ":" + httpPort + "/");

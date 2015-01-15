@@ -1,24 +1,29 @@
 {
-    "app_name": "currentweather",
-    "services": [
+  "app_name": "currentweather-app",
+  "services": [
+    {
+      "service_name": "currentweather-service",
+      "components": [
         {
-            "service_name": "currentweather-service",
-            "components": [
-                {
-                    "component_name": "currentweather-component",
-                    "image": "registry.giantswarm.io/luebken/currentweather",
-                    "ports": [ "1337/tcp" ],
-                    "dependencies": [
-                        { "name": "redis", "port": 6379 }
-                    ],
-                    "domains": { "currentweather.gigantic.io": "1337" }
-                },
-                {
-                    "component_name": "redis",
-                    "image": "redis",
-                    "ports": [ "6379/tcp" ]
-                }
-            ]
+          "component_name": "nodejs",
+          "image": "registry.giantswarm.io/$company/currentweather",
+          "ports": ["1337/tcp"],
+          "dependencies": [
+            {
+              "name": "redis",
+              "port": 6379
+            }
+          ],
+          "domains": {
+            "currentweather-$company.gigantic.io": "1337"
+          }
+        },
+        {
+          "component_name": "redis",
+          "image": "redis",
+          "ports": ["6379/tcp"]
         }
-    ]
+      ]
+    }
+  ]
 }
