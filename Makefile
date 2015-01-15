@@ -1,4 +1,4 @@
-PROJECT = sparkexample
+PROJECT = currentweather
 REGISTRY = registry.giantswarm.io
 # The default company equeals to your username
 COMPANY :=  $(shell swarm user)
