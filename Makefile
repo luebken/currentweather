@@ -6,10 +6,10 @@ COMPANY :=  $(shell swarm user)
 build:
 	docker build -t $(REGISTRY)/$(COMPANY)/$(PROJECT) .
 
-run-redis:
-	docker run --name="redis" -p 6379:6379 -d redis
+run-local-redis:
+	docker run --name="currentweather-redis" -d redis
 
-run:
+run-local-nodejs:
 	docker run --link redis:redis -p 1337:1337 -ti --rm $(REGISTRY)/$(COMPANY)/$(PROJECT)
 
 push:
