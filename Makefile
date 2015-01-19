@@ -7,7 +7,7 @@ build:
 	docker build -t $(REGISTRY)/$(COMPANY)/$(PROJECT) .
 
 run-local-redis:
-	docker run --name="currentweather-redis" -d redis
+	docker run --name=redis -d redis
 
 run-local-nodejs:
 	docker run --link redis:redis -p 1337:1337 -ti --rm $(REGISTRY)/$(COMPANY)/$(PROJECT)
