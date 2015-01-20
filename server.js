@@ -42,4 +42,4 @@ function writeResponse(res, weather) {
   res.end("Current weather in Cologne: " + weather + "\n");
 }
 
-console.log("Server running at http://" + httpAddress + ":" + httpPort + "/");
+console.log("Server running at http://<ip-address>:" + httpPort + "/");
