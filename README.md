@@ -6,4 +6,3 @@ A simple NodeJS app with a Redis cache. Dockerized and Swarmified. See http://do
 ## In other languages
 
 * [Golang](https://github.com/giantswarm/giantswarm-currentweather-go)
-* 
