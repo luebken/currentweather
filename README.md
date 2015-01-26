@@ -1,3 +1,9 @@
+Repository has moved
+====================
+
+This repository has moved: https://github.com/giantswarm/giantswarm-currentweather
+
+
 currentweather
 ==============
 
