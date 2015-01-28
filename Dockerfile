@@ -10,4 +10,4 @@ ADD server.js /app/
 
 EXPOSE 1337
 
-CMD ["/nodejs/bin/node", "server.js"]
+ENTRYPOINT ["/nodejs/bin/node", "server.js"]
