@@ -37,6 +37,12 @@ http.createServer(function (request, response) {
   });
 }).listen(httpPort, httpAddress);
 
+process.on('SIGTERM', function () {
+  server.close(function () {
+    process.exit(0);
+  });
+});
+
 function writeResponse(res, weather) {
   res.writeHead(200, {"Content-Type": "text/html"});
   res.end("Current weather in Cologne: " + weather + "\n");
