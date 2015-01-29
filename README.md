@@ -33,3 +33,4 @@ For further documentation and guides see the [docs](https:://docs.giantswarm.io)
 ## In other languages
 
 * [Golang](https://github.com/giantswarm/giantswarm-firstapp-go)
+* [PHP](https://github.com/giantswarm/giantswarm-firstapp-php)
