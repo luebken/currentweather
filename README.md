@@ -5,16 +5,23 @@ This is a simple example to write Node.JS applications and deploy them on [Giant
 ## Prerequisites
 
 * Have a Giant Swarm account and the [swarm cli](http://docs.giantswarm.io/installation/gettingstarted/#installing-the-cli) running. [Request a free invite](https://giantswarm.io/).
-* Have [Docker](https://docs.docker.com/installation/) and [Fig](http://www.fig.sh/) running and be familiar with the basic Docker and Fig commands and Makefiles.
+* Have [Docker](https://docs.docker.com/installation/) running and be familiar with the basic Docker commands and Makefiles.
 
 ## Edit source
 
 The application is implemented in [server.js](server.js). It starts a webserver and on root request queries the [openweather API](http://api.openweathermap.org/data/2.5/weather?q=Cologne) caches the result in Redis and extracts and returns the current weather for Cologne.
 
-## Run in locally
-To run it locally you just have to do a `make fig-up`. This:
-* creates a custom Docker image with the Node.JS sources
-* starts both the custom Docker container and a Redis container.
+## Run locally
+
+To run the two required containers locally you just have to do
+
+```
+$ make build-docker
+$ make docker-run-redis
+$ make docker-run
+```
+
+This creates a custom Docker image with the Node.JS sources and starts both the custom Docker container and a Redis container.
 
 To test it on a Mac run something like: `curl $(boot2docker ip):8080` on Linux machines `curl localhost:8080` should be sufficient.
 
