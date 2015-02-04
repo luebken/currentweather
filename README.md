@@ -16,7 +16,7 @@ To run it locally you just have to do a `make fig-up`. This:
 * creates a custom Docker image with the Node.JS sources
 * starts both the custom Docker container and a Redis container.
 
-To test it on a Mac run something like: `curl $(boot2docker ip):8080` on Linux machines `curl localhost:8080` should be sufficient.
+To test it on a Mac run something like: `curl $(boot2docker ip):1337` on Linux machines `curl localhost:1337` should be sufficient.
 
 ## Run in on Giant Swarm
 To deploy it on Giant Swarm you just have to do a `make swarm-up`. This:
