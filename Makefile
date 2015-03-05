@@ -10,7 +10,7 @@ docker-run-redis:
 	docker run --name=redis -d redis
 
 docker-run:
-	docker run --link redis:redis -p 1337:1337 -ti --rm $(REGISTRY)/$(USERNAME)/$(PROJECT)
+	docker run --link redis:redis -p 1337:1337 --rm $(REGISTRY)/$(USERNAME)/$(PROJECT)
 
 docker-push: docker-build
 	docker push $(REGISTRY)/$(USERNAME)/$(PROJECT)
