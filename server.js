@@ -11,7 +11,7 @@ client = redis.createClient(redisPort, redisAddress);
 server = http.createServer(function (request, response) {
   client.get("currentweather", function (err, weatherString) {
     if (weatherString == null) {
-      console.log("MDL Querying live weather data");
+      console.log("Querying live weather data");
       var url = "http://api.openweathermap.org/data/2.5/weather?q=Cologne";
       http.get(url, function(apiResponse) {
         var body = "";
