@@ -8,10 +8,10 @@ var redisAddress = process.env.REDIS_PORT_6379_TCP_ADDR,
 
 client = redis.createClient(redisPort, redisAddress);
 
-http.createServer(function (request, response) {
+server = http.createServer(function (request, response) {
   client.get("currentweather", function (err, weatherString) {
     if (weatherString == null) {
-      console.log("Querying live weather data");
+      console.log("MDL Querying live weather data");
       var url = "http://api.openweathermap.org/data/2.5/weather?q=Cologne";
       http.get(url, function(apiResponse) {
         var body = "";
@@ -35,9 +35,12 @@ http.createServer(function (request, response) {
       writeResponse(response, weatherString);
     }
   });
-}).listen(httpPort, httpAddress);
+})
+
+server.listen(httpPort, httpAddress);
 
 process.on('SIGTERM', function () {
+  console.log("Received SIGTERM. Exiting.")
   server.close(function () {
     process.exit(0);
   });
