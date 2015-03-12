@@ -20,7 +20,7 @@ The application is implemented in [server.js](server.js). It starts a webserver 
 To run the two required containers locally you just have to do
 
 ```
-$ make build-docker
+$ make docker-build
 $ make docker-run-redis
 $ make docker-run
 ```
@@ -39,7 +39,7 @@ To test it run something like: `curl currentweather-YOURUSERNAME.gigantic.io` an
 
 For all build and deploy details see the [Makefile](Makefile).
 
-For further documentation and guides see the [docs](https://docs.giantswarm.io). 
+For further documentation and guides see the [docs](https://docs.giantswarm.io).
 
 ## In other languages
 
