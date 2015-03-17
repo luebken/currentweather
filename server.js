@@ -12,7 +12,7 @@ server = http.createServer(function (request, response) {
   client.get("currentweather", function (err, weatherString) {
     if (weatherString == null) {
       console.log("Querying live weather data");
-      var url = "http://api.openweathermap.org/data/2.5/weather?q=Cologne";
+      var url = "http://api.openweathermap.org/data/2.5/weather?q=Cologne,DE";
       http.get(url, function(apiResponse) {
         var body = "";
         apiResponse.on("data", function(chunk) {
