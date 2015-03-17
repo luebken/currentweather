@@ -47,3 +47,4 @@ For further documentation and guides see the [docs](https://docs.giantswarm.io).
 * [Ruby](https://github.com/giantswarm/giantswarm-firstapp-ruby)
 * [Python](https://github.com/giantswarm/giantswarm-firstapp-python)
 * [PHP](https://github.com/giantswarm/giantswarm-firstapp-php)
+* [Java](https://github.com/giantswarm/giantswarm-firstapp-java)
