@@ -1,22 +1,36 @@
-PROJECT = currentweather
-REGISTRY = registry.giantswarm.io
-USERNAME :=  $(shell swarm user)
+# Variable for re-use in the file
+GIANTSWARM_USERNAME := $(shell swarm user)
 
+
+# Building your custom docker image
 docker-build:
-	docker pull redis
-	docker build -t $(REGISTRY)/$(USERNAME)/$(PROJECT) .
+	docker build -t registry.giantswarm.io/$(GIANTSWARM_USERNAME)/currentweather-nodejs .
 
+# Starting redis container to run in the background
 docker-run-redis:
-	docker run --name=redis -d redis
+	docker run --name=currentweather-redis-container -d redis
 
+# Running your custom-built docker image locally
 docker-run:
-	docker run --link redis:redis -p 1337:1337 --rm $(REGISTRY)/$(USERNAME)/$(PROJECT)
+	docker run --link currentweather-redis-container:redis -p 1337:1337 --rm -ti \
+		--name currentweather-nodejs-container \
+		registry.giantswarm.io/$(GIANTSWARM_USERNAME)/currentweather-nodejs
 
-docker-push: docker-build
-	docker push $(REGISTRY)/$(USERNAME)/$(PROJECT)
+# Pushing the freshly built image to the registry
+docker-push:
+	docker push registry.giantswarm.io/$(GIANTSWARM_USERNAME)/currentweather-nodejs
 
-docker-pull:
-	docker pull $(REGISTRY)/$(USERNAME)/$(PROJECT)
+# Starting your application on Giant Swarm.
+# Requires prior pushing to the registry ('make docker-push')
+swarm-up:
+	swarm up swarm.json --var=username=$(GIANTSWARM_USERNAME)
 
-swarm-up: docker-push
-	swarm up swarm.json --var=username=$(USERNAME)
+# Removing your application again from Giant Swarm
+# to free resources. Also required before changing
+# the swarm.json file and re-issueing 'swarm up'
+swarm-delete:
+	swarm delete currentweather
+
+# To remove the stuff we built locally afterwards
+clean:
+	docker rmi -f registry.giantswarm.io/$(GIANTSWARM_USERNAME)/currentweather-nodejs

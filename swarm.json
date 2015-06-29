@@ -6,7 +6,7 @@
       "components": [
         {
           "component_name": "nodejs",
-          "image": "registry.giantswarm.io/$username/currentweather",
+          "image": "registry.giantswarm.io/$username/currentweather-nodejs",
           "ports": [1337],
           "dependencies": [
             {
