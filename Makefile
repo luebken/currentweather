@@ -29,7 +29,7 @@ swarm-up:
 # to free resources. Also required before changing
 # the swarm.json file and re-issueing 'swarm up'
 swarm-delete:
-	swarm delete currentweather
+	swarm delete currentweather-app
 
 # To remove the stuff we built locally afterwards
 clean:
