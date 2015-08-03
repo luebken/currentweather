@@ -8,7 +8,9 @@ docker-build:
 
 # Starting redis container to run in the background
 docker-run-redis:
-	docker run --name=currentweather-redis-container -d redis
+	@docker kill currentweather-redis-container > /dev/null || true
+	@docker rm currentweather-redis-container > /dev/null || true
+	docker run -d --name currentweather-redis-container redis
 
 # Running your custom-built docker image locally
 docker-run:
@@ -20,16 +22,16 @@ docker-run:
 docker-push:
 	docker push registry.giantswarm.io/$(GIANTSWARM_USERNAME)/currentweather-nodejs
 
-# Starting your application on Giant Swarm.
+# Starting your service on Giant Swarm.
 # Requires prior pushing to the registry ('make docker-push')
 swarm-up:
-	swarm up swarm.json --var=username=$(GIANTSWARM_USERNAME)
+	swarm up
 
-# Removing your application again from Giant Swarm
+# Removing your service again from Giant Swarm
 # to free resources. Also required before changing
 # the swarm.json file and re-issueing 'swarm up'
 swarm-delete:
-	swarm delete currentweather-app
+	swarm delete
 
 # To remove the stuff we built locally afterwards
 clean:
