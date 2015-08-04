@@ -1,4 +1,4 @@
-# Your first application with Node.JS, Docker, Redis on Giant Swarm
+# Getting Started with Node.JS, Docker, and Redis on Giant Swarm
 
 This is a simple example that demonstrates how to write a microservice in JavaScript for NodeJS and deploy it on [Giant Swarm](https://giantswarm.io/). It pings an external API and caches the data in an Redis cache.
 
