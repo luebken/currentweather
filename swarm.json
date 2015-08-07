@@ -11,7 +11,7 @@
         }
       ],
       "domains": {
-        "currentweather-$GIANTSWARM_LOGIN_NAME.gigantic.io": "1337"
+        "1337": "currentweather-$GIANTSWARM_LOGIN_NAME.gigantic.io"
       }
     },
     "redis": {
