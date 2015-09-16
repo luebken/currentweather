@@ -4,8 +4,6 @@ WORKDIR /app
 
 # install dependencies
 ADD package.json /app/
-
-# install dependencies
 RUN npm install
 
 # install app
