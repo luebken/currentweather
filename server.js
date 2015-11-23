@@ -1,10 +1,11 @@
 var http = require("http");
 var redis = require("redis");
 
-var redisAddress = process.env.REDIS_PORT_6379_TCP_ADDR,
-  redisPort = process.env.REDIS_PORT_6379_TCP_PORT,
+var redisAddress = "redis",
+  redisPort = 6379,
   httpAddress = "0.0.0.0",
-  httpPort = "1337";
+  httpPort = "1337",
+  openWeatherMapApiKey = "182564eaf55f709a58a13c40086fb5bb";
 
 client = redis.createClient(redisPort, redisAddress);
 
@@ -12,7 +13,7 @@ server = http.createServer(function (request, response) {
   client.get("currentweather", function (err, weatherString) {
     if (weatherString == null) {
       console.log("Querying live weather data");
-      var url = "http://api.openweathermap.org/data/2.5/weather?q=Cologne,DE";
+      var url = "http://api.openweathermap.org/data/2.5/weather?q=Cologne,DE&appid=" + openWeatherMapApiKey;
       http.get(url, function(apiResponse) {
         var body = "";
         apiResponse.on("data", function(chunk) {
