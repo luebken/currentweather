@@ -1,11 +1,11 @@
 {
   "name": "currentweather",
-  "description": "A sample application for Giant Swarm using NodeJS and Redis",
+  "description": "A sample application for using NodeJS and Redis with Docker et al",
   "readme": "README.md",
   "license" : "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "http://github.com/giantswarm/giantswarm-currentweather.git"
+    "url": "https://github.com/luebken/currentweather"
   },
   "dependencies": {
     "redis": "*"
