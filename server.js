@@ -8,6 +8,10 @@ var redisAddress = "redis",
   openWeatherMapApiKey = "182564eaf55f709a58a13c40086fb5bb";
 
 client = redis.createClient(redisPort, redisAddress);
+client.on("error", function (err) {
+  console.log("Catching error from Redis client to enable reconnect.");
+  console.log(err);
+});
 
 server = http.createServer(function (request, response) {
   client.get("currentweather", function (err, weatherString) {
@@ -52,4 +56,4 @@ function writeResponse(res, weather) {
   res.end("Current weather in Cologne: " + weather + "\n");
 }
 
-console.log("Server running at http://<ip-address>:" + httpPort + "/");
+console.log("Server running at 0.0.0.1:" + httpPort + "/");
