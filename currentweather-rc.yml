@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: currentweather
+spec:
+  template:
+    metadata:
+      labels:
+        app: currentweather
+    spec:
+      containers:
+        - name: currentweather
+          image: luebken/currentweather-nodejs:latest
+          ports:
+            - name: cw-server
+              containerPort: 1337

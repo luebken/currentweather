@@ -18,10 +18,22 @@ docker-run-currentweather:
 
 # Pushing the freshly built image to the registry
 docker-push:
-	docker push /$(DOCKER_USERNAME)/currentweather-nodejs
+	docker push $(DOCKER_USERNAME)/currentweather-nodejs
 
 # To remove the stuff we built locally afterwards
-clean:
+docker-clean:
 	docker kill redis-container
 	docker rmi -f $(DOCKER_USERNAME)/currentweather-nodejs || true
 	docker network rm currentweather_nw || true
+
+kube-create:
+	kubectl create -f redis-rc.yml
+	kubectl create -f redis-svc.yml
+	kubectl create -f currentweather-rc.yml
+	kubectl create -f currentweather-svc.yml
+
+kube-clean:
+	kubectl delete rc/redis || true
+	kubectl delete svc/redis || true
+	kubectl delete rc/currentweather || true
+	kubectl delete svc/currentweather || true
