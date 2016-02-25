@@ -1,9 +1,14 @@
 DOCKER_USERNAME := luebken
+OPENWEATHERMAP_APIKEY := 182564eaf55f709a58a13c40086fb5bb
 
 # Building your custom docker image
 docker-build:
 	docker build -t $(DOCKER_USERNAME)/currentweather-nodejs .
 	docker network create currentweather_nw || true
+
+# Show which environment variables are avaiable
+docker-show-available-envs:
+	docker inspect -f "{{.Config.Labels }}" $(DOCKER_USERNAME)/currentweather-nodejs | sed "s/^map\[available-envs://" | sed "s/\]//" | jq .
 
 # Starting redis container to run in the background
 docker-run-redis:
@@ -14,6 +19,7 @@ docker-run-redis:
 # Running your custom-built docker image locally
 docker-run-currentweather:
 	docker run --net=currentweather_nw --link=redis-container:redis -p 1337:1337 --rm -ti \
+		-e OPENWEATHERMAP_APIKEY=$(OPENWEATHERMAP_APIKEY) \
 		$(DOCKER_USERNAME)/currentweather-nodejs
 
 # Pushing the freshly built image to the registry

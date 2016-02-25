@@ -1,0 +1,24 @@
+
+{
+  "title": "Available Envs schema",
+  "type": "array",
+  "items": {
+  	"type": "object" {
+  		"properties" : {
+  			"key" : {
+          "type": "string"
+  			},
+  			"description" : {
+          "type": "string"
+  			},
+  			"default_value" : {
+          "type": "string"
+  			},
+  			"mandatory" : {
+          "type": "boolean"  				
+  			}
+  		}
+  	}
+  },
+  "required": ["key"]
+}

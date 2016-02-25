@@ -5,7 +5,7 @@ var redisAddress = "redis",
   redisPort = 6379,
   httpAddress = "0.0.0.0",
   httpPort = "1337",
-  openWeatherMapApiKey = "182564eaf55f709a58a13c40086fb5bb";
+  openWeatherMapApiKey = process.env.OPENWEATHERMAP_APIKEY || "182564eaf55f709a58a13c40086fb5bb";
 
 client = redis.createClient(redisPort, redisAddress);
 client.on("error", function (err) {
