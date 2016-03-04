@@ -42,3 +42,4 @@ If you have added a rule to Virtualbox etc you can test it and run something lik
 
 See the [downstream repository](https://github.com/giantswarm/giantswarm-currentweather
 ) for a detailed description on how to get this running on Giant Swarm.
+
