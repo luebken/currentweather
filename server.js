@@ -1,3 +1,5 @@
+/* global server */
+/* global client */
 var http = require("http");
 var redis = require("redis");
 
