@@ -11,17 +11,6 @@ RUN npm install
 # install app
 ADD server.js /app/
 
-# Describe which ENVs are available
-# LABEL api.expected-envs "[\
-# {\"key\":\"OPENWEATHERMAP_APIKEY\",\
-# \"description\":\"APIKEY to access the OpenWeatherMap. Get one at http://openweathermap.org/appid\",\
-# \"mandatory\":true}\
-# ]"
-
-LABEL api.expected-envs.OPENWEATHERMAP_APIKEY=""\
-      api.expected-envs.OPENWEATHERMAP_APIKEY.description="APIKEY to access the OpenWeatherMap. Get one at http://openweathermap.org/appid " \
-      api.expected-envs.OPENWEATHERMAP_APIKEY.mandatory="true"
-
 # LABEL api.expected-args "[\
 # {\"arg\":\"-q QUERY\",\
 # \"description\":\"The query for openweathermap.\",\
@@ -36,5 +25,16 @@ LABEL api.expected-envs.OPENWEATHERMAP_APIKEY=""\
 # \"mandatory\":true}\
 # ]"
 
+# Set and describe available ENVs
+ENV OPENWEATHERMAP_APIKEY=182564eaf55f709a58a13c40086fb5bb
+LABEL api.ENV.OPENWEATHERMAP_APIKEY="" \
+      api.ENV.OPENWEATHERMAP_APIKEY.description="Access key for OpenWeatherMap. See http://openweathermap.org/appid for details." \
+      api.ENV.OPENWEATHERMAP_APIKEY.mandatory="false"
+
+# Expose and describe available ports
 EXPOSE 1337
+LABEL api.EXPOSE.1337="" \
+      api.EXPOSE.1337.protocol="http" \
+      api.EXPOSE.1337.description="The main endpoint of this service."
+
 ENTRYPOINT ["node", "server.js"]
