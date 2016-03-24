@@ -11,19 +11,12 @@ RUN npm install
 # install app
 ADD server.js /app/
 
-# LABEL api.expected-args "[\
-# {\"arg\":\"-q QUERY\",\
-# \"description\":\"The query for openweathermap.\",\
-# \"default\":\"Cologne, DE\",\
-# \"mandatory\":false}\
-# ]"
-# 
-# LABEL api.expected-links "[\
-# {\"name\":\"redis:latest\",\
-# \"port\":\"1337\",\
-# \"description\":\"Needed for requests caching\",\
-# \"mandatory\":true}\
-# ]"
+# Describe container dependencies
+LABEL api.LINKS.redis=""\
+      api.LINKS.redis.image="redis:latest"\
+      api.LINKS.redis.port="6379"\
+      api.LINKS.redis.description="For caching requests to OWM API."\
+      api.LINKS.redis.mandatory="true"
 
 # Set and describe available ENVs
 ENV OPENWEATHERMAP_APIKEY=182564eaf55f709a58a13c40086fb5bb
