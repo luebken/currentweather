@@ -8,9 +8,8 @@ docker-build: ## Building your custom docker image
 	docker build -t $(DOCKER_USERNAME)/currentweather-nodejs .
 	docker network create currentweather_nw || true
 
-#TODO better format
 docker-labels: ## Show labels of the image
-	docker inspect -f "{{.Config.Labels }}" $(DOCKER_USERNAME)/currentweather-nodejs
+	docker inspect $(DOCKER_USERNAME)/currentweather-nodejs | jq .[].Config.Labels
 
 docker-run-redis: ## Starting redis container to run in the background
 	docker kill redis-container || true
