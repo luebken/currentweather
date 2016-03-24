@@ -1,7 +1,5 @@
 FROM node:0.10-slim
-
 MAINTAINER matthias.luebken@gmail.com
-
 WORKDIR /app
 
 # install dependencies
