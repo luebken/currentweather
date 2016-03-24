@@ -14,3 +14,9 @@ spec:
           ports:
             - name: cw-server
               containerPort: 1337
+          env:
+            - name: OPENWEATHERMAP_APIKEY
+              valueFrom:
+                configMapKeyRef:
+                    name: currentweather-config
+                    key: openweathermap.apikey

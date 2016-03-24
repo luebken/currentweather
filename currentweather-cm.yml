@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: currentweather-config
+  namespace: default
+data:
+  openweathermap.apikey: 182564eaf55f709a58a13c40086fb5bb

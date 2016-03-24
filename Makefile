@@ -33,14 +33,16 @@ docker-clean: ## Remove the stuff we built locally afterwards
 kube-create: ## Create kubernetes rc and svc 
 	kubectl create -f redis-rc.yml
 	kubectl create -f redis-svc.yml
+	kubectl create -f currentweather-cm.yml
 	kubectl create -f currentweather-rc.yml
 	kubectl create -f currentweather-svc.yml
 
-kube-clean: ## Clean up rc and svc
-	kubectl delete rc/redis || true
-	kubectl delete svc/redis || true
-	kubectl delete rc/currentweather || true
-	kubectl delete svc/currentweather || true
+kube-delete: ## Delete rc, cm and svc
+	kubectl delete -f redis-rc.yml
+	kubectl delete -f redis-svc.yml
+	kubectl delete -f currentweather-cm.yml
+	kubectl delete -f currentweather-rc.yml
+	kubectl delete -f currentweather-svc.yml
    
 # via http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:

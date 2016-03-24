@@ -17,10 +17,9 @@ LABEL api.LINKS.redis=""\
       api.LINKS.redis.mandatory="true"
 
 # Set and describe available ENVs
-ENV OPENWEATHERMAP_APIKEY=182564eaf55f709a58a13c40086fb5bb
 LABEL api.ENV.OPENWEATHERMAP_APIKEY="" \
       api.ENV.OPENWEATHERMAP_APIKEY.description="Access key for OpenWeatherMap. See http://openweathermap.org/appid for details." \
-      api.ENV.OPENWEATHERMAP_APIKEY.mandatory="false"
+      api.ENV.OPENWEATHERMAP_APIKEY.mandatory="true"
 
 # Expose and describe available ports
 EXPOSE 1337

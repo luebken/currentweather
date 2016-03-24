@@ -9,6 +9,11 @@ var redisAddress = "redis",
   httpPort = "1337",
   openWeatherMapApiKey = process.env.OPENWEATHERMAP_APIKEY;
 
+if (openWeatherMapApiKey == "" ) {
+  console.log("Missing mandatory env OPENWEATHERMAP_APIKEY");
+  process.exit(1);
+}
+
 client = redis.createClient(redisPort, redisAddress);
 client.on("error", function (err) {
   console.log("Catching error from Redis client to enable reconnect.");
@@ -58,4 +63,4 @@ function writeResponse(res, weather) {
   res.end("Current weather in Cologne: " + weather + "\n");
 }
 
-console.log("Server running at 0.0.0.1:" + httpPort + "/");
+console.log("Server running at 0.0.0.0:" + httpPort + "/");
