@@ -1,5 +1,6 @@
 {
   "name": "currentweather",
+  "version" : "1.0.0",
   "description": "A sample application for using NodeJS and Redis with Docker et al",
   "readme": "README.md",
   "license" : "Apache-2.0",

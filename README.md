@@ -1,7 +1,11 @@
-Currentweather 
+Currentweather 1.0.0 
 ====================
 
 A sample application for using NodeJS and Redis with Docker et al. It pings an external API and caches the data in an Redis cache.
+
+## Versioning
+
+We use a [semantic versioning](http://semver.org/spec/v2.0.0.html)
 
 ### Prerequisites
 
