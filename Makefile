@@ -13,9 +13,6 @@ docker-delete-network:
 docker-build-currentweather: ## Building your custom docker image
 	docker build -t $(DOCKER_USERNAME)/currentweather-nodejs .
 
-docker-build-ui:
-	docker build -t $(DOCKER_USERNAME)/currentweather-ui -f Dockerfile-UI .
-
 docker-labels: ## Show labels of the image
 	docker inspect $(DOCKER_USERNAME)/currentweather-nodejs | jq .[].Config.Labels
 
@@ -39,8 +36,6 @@ docker-push: docker-build-currentweather ## Pushing the freshly built image to t
 
 docker-stop: ## Remove the stuff we built locally afterwards
 	docker kill redis ; docker rm redis || true
-	docker kill currentweather-ui ; docker rm currentweather-ui || true
-	docker rmi -f $(DOCKER_USERNAME)/currentweather-ui || true
 	docker rmi -f $(DOCKER_USERNAME)/currentweather-nodejs || true
 	docker network rm currentweather_nw || true
 
@@ -60,9 +55,12 @@ kube-stop: ## Delete rc, cm and svc
 	kubectl delete -f currentweather-rc.yml
 	kubectl delete -f currentweather-svc.yml
 
+<<<<<<< HEAD
 test:
 	curl localhost:1337/status
 
+=======
+>>>>>>> 0207e40... renamed some targets and fixed kube-stop to scale rc to 0 first
 # via http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
