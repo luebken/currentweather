@@ -14,35 +14,37 @@ docker-labels: ## Show labels of the image
 docker-run-redis: ## Starting redis container to run in the background
 	docker kill redis-container || true
 	docker rm redis-container || true
-	docker run -d --net=currentweather_nw --name redis redis
+	docker run --detach --net=currentweather_nw --name redis-container redis-container
 
 docker-run-currentweather: ## Running your custom-built docker image locally
-	docker run --net=currentweather_nw -p 1337:1337 --rm -ti \
+	docker run --net=currentweather_nw --link=redis-container:redis-container --name currentweather-container -p 1337:1337 --rm -ti \
 		-e OPENWEATHERMAP_APIKEY=$(OPENWEATHERMAP_APIKEY) \
 		$(DOCKER_USERNAME)/currentweather-nodejs
 
 docker-push: ## Pushing the freshly built image to the registry
 	docker push $(DOCKER_USERNAME)/currentweather-nodejs
 
-docker-clean: ## Remove the stuff we built locally afterwards
+docker-stop: ## Remove the stuff we built locally afterwards
 	docker kill redis-container
 	docker rmi -f $(DOCKER_USERNAME)/currentweather-nodejs || true
 	docker network rm currentweather_nw || true
 
-kube-create: ## Create kubernetes rc and svc 
+kube-run: ## Create kubernetes rc and svc
 	kubectl create -f redis-rc.yml
 	kubectl create -f redis-svc.yml
 	kubectl create -f currentweather-cm.yml
 	kubectl create -f currentweather-rc.yml
 	kubectl create -f currentweather-svc.yml
 
-kube-delete: ## Delete rc, cm and svc
+kube-stop: ## Delete rc, cm and svc
+	kubectl scale --replicas=0 rc redis
 	kubectl delete -f redis-rc.yml
 	kubectl delete -f redis-svc.yml
+	kubectl scale --replicas=0 rc currentweather
 	kubectl delete -f currentweather-cm.yml
 	kubectl delete -f currentweather-rc.yml
 	kubectl delete -f currentweather-svc.yml
-   
+
 # via http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
