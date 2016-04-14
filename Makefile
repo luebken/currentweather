@@ -14,10 +14,10 @@ docker-labels: ## Show labels of the image
 docker-run-redis: ## Starting redis container to run in the background
 	docker kill redis-container || true
 	docker rm redis-container || true
-	docker run -d --net=currentweather_nw --name redis-container redis
+	docker run -d --net=currentweather_nw --name redis redis
 
 docker-run-currentweather: ## Running your custom-built docker image locally
-	docker run --net=currentweather_nw --link=redis-container:redis -p 1337:1337 --rm -ti \
+	docker run --net=currentweather_nw -p 1337:1337 --rm -ti \
 		-e OPENWEATHERMAP_APIKEY=$(OPENWEATHERMAP_APIKEY) \
 		$(DOCKER_USERNAME)/currentweather-nodejs
 
