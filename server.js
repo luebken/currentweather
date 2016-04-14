@@ -1,7 +1,11 @@
 /* global server */
 /* global client */
+/* global httpdispatcher */
+/* global util */
 var http = require("http");
 var redis = require("redis");
+var dispatcher = require('httpdispatcher');
+var util = require("util");
 
 var redisAddress = "redis",
   redisPort = 6379,
@@ -20,7 +24,15 @@ client.on("error", function (err) {
   console.log(err);
 });
 
-server = http.createServer(function (request, response) {
+server = http.createServer(function(request, response) {
+  dispatcher.dispatch(request, response);
+});
+
+dispatcher.onError(function(request, response) {
+		response.writeHead(404);
+});
+
+dispatcher.onGet("/", function(request, response) {
   client.get("currentweather", function (err, weatherString) {
     if (weatherString == null) {
       console.log("Querying live weather data");
@@ -47,7 +59,13 @@ server = http.createServer(function (request, response) {
       writeResponse(response, weatherString);
     }
   });
-})
+});
+
+dispatcher.onGet("/status", function(request, response) {
+  response.writeHead(200, {"Content-Type": "application/json"});
+  response.end('{"null": 0, "data": ' + util.inspect(process.env, {showHidden: true, depth: null}) +
+                ', "load": 0.0}'); // FIXME
+});
 
 server.listen(httpPort, httpAddress);
 

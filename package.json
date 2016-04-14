@@ -8,6 +8,7 @@
     "url": "https://github.com/luebken/currentweather"
   },
   "dependencies": {
-    "redis": "*"
+    "redis": "*",
+    "httpdispatcher": "1.0.0"
   }
 }
