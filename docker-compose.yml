@@ -6,3 +6,9 @@ currentweather:
    - redis
 redis:
   image: redis
+ui:
+  image: currentweather-ui
+  ports:
+    - "8088:8088"
+  links:
+    - currentweather

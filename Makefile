@@ -4,29 +4,43 @@ OPENWEATHERMAP_APIKEY := 182564eaf55f709a58a13c40086fb5bb
 # run `make` to see options
 .DEFAULT_GOAL := help
 
-docker-build: ## Building your custom docker image
-	docker build -t $(DOCKER_USERNAME)/currentweather-nodejs .
+docker-create-network:
 	docker network create currentweather_nw || true
+
+docker-delete-network:
+	docker network rm currentweather_nw
+
+docker-build-currentweather: ## Building your custom docker image
+	docker build -t $(DOCKER_USERNAME)/currentweather-nodejs .
+
+docker-build-ui:
+	docker build -t $(DOCKER_USERNAME)/currentweather-ui -f Dockerfile-UI .
 
 docker-labels: ## Show labels of the image
 	docker inspect $(DOCKER_USERNAME)/currentweather-nodejs | jq .[].Config.Labels
 
-docker-run-redis: ## Starting redis container to run in the background
+docker-run-redis: docker-create-network ## Starting redis container to run in the background
 	docker kill redis || true
 	docker rm redis || true
 	docker run -d --net=currentweather_nw --name redis redis
 
-docker-run-currentweather: docker-build ## Running your custom-built docker image locally
+docker-run-ui: docker-build-ui ## Starting UI container to run in the background
+	docker kill currentweather-ui || true
+	docker rm currentweather-ui || true
+	docker run -d --net=currentweather_nw --publish 8088:80 --name currentweather-ui $(DOCKER_USERNAME)/currentweather-ui
+
+docker-run-currentweather: docker-build-currentweather docker-build-ui docker-run-redis docker-run-ui ## Running your custom-built docker image locally
 	docker run --net=currentweather_nw -p 1337:1337 --rm -ti \
 		-e OPENWEATHERMAP_APIKEY=$(OPENWEATHERMAP_APIKEY) \
 		$(DOCKER_USERNAME)/currentweather-nodejs
 
-docker-push: docker-build ## Pushing the freshly built image to the registry
+docker-push: docker-build-currentweather ## Pushing the freshly built image to the registry
 	docker push $(DOCKER_USERNAME)/currentweather-nodejs
 
 docker-stop: ## Remove the stuff we built locally afterwards
-	docker kill redis || true
-	docker rm redis || true
+	docker kill redis ; docker rm redis || true
+	docker kill currentweather-ui ; docker rm currentweather-ui || true
+	docker rmi -f $(DOCKER_USERNAME)/currentweather-ui || true
 	docker rmi -f $(DOCKER_USERNAME)/currentweather-nodejs || true
 	docker network rm currentweather_nw || true
 
@@ -45,6 +59,9 @@ kube-stop: ## Delete rc, cm and svc
 	kubectl delete -f currentweather-cm.yml
 	kubectl delete -f currentweather-rc.yml
 	kubectl delete -f currentweather-svc.yml
+
+test:
+	curl localhost:1337/status
 
 # via http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
