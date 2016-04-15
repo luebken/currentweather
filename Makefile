@@ -12,20 +12,21 @@ docker-labels: ## Show labels of the image
 	docker inspect $(DOCKER_USERNAME)/currentweather-nodejs | jq .[].Config.Labels
 
 docker-run-redis: ## Starting redis container to run in the background
-	docker kill redis-container || true
-	docker rm redis-container || true
+	docker kill redis || true
+	docker rm redis || true
 	docker run -d --net=currentweather_nw --name redis redis
 
-docker-run-currentweather: ## Running your custom-built docker image locally
+docker-run-currentweather: docker-build ## Running your custom-built docker image locally
 	docker run --net=currentweather_nw -p 1337:1337 --rm -ti \
 		-e OPENWEATHERMAP_APIKEY=$(OPENWEATHERMAP_APIKEY) \
 		$(DOCKER_USERNAME)/currentweather-nodejs
 
-docker-push: ## Pushing the freshly built image to the registry
+docker-push: docker-build ## Pushing the freshly built image to the registry
 	docker push $(DOCKER_USERNAME)/currentweather-nodejs
 
 docker-stop: ## Remove the stuff we built locally afterwards
-	docker kill redis-container
+	docker kill redis || true
+	docker rm redis || true
 	docker rmi -f $(DOCKER_USERNAME)/currentweather-nodejs || true
 	docker network rm currentweather_nw || true
 
