@@ -35,7 +35,7 @@ $ make kube-create
 
 This uses [NodePorts](http://kubernetes.io/v1.0/docs/user-guide/services.html#type-nodeport) which you should see in the out put (e.g. tcp:32476).
 
-If you have added a rule to Virtualbox etc you can test it and run something like `curl localhost:32476`.
+If you have added a rule to Virtualbox etc you can test it and run something like `curl localhost:32476/status/Bonn,DE`.
 
 
 ## On Giant Swarm

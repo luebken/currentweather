@@ -2,6 +2,7 @@
 /* global client */
 var http = require("http");
 var redis = require("redis");
+var url = require("url");
 
 var redisAddress = "redis",
   redisPort = 6379,
@@ -21,30 +22,47 @@ client.on("error", function (err) {
 });
 
 server = http.createServer(function (request, response) {
-  client.get("currentweather", function (err, weatherString) {
-    if (weatherString == null) {
-      console.log("Querying live weather data");
-      var url = "http://api.openweathermap.org/data/2.5/weather?q=Cologne,DE&appid=" + openWeatherMapApiKey;
+  uurl = request.url.match(/^\/status\/(.+)/)
+  var query
+  if(uurl != null && uurl[1] != null) {
+    query = uurl[1]
+  } else {
+    console.log("Didn't find query for request ", request.url)
+    response.writeHead(404);
+    response.end("Wrong query try /status/Bonn,DE");
+  }
+
+  client.get("currentweather-" + query, function (err, weatherObjectString) {
+    if (weatherObjectString == null) {
+      console.log(Date.now() + " Querying live weather data for ", query);
+      var url = "http://api.openweathermap.org/data/2.5/weather?q=" + query + "&appid=" + openWeatherMapApiKey;
       http.get(url, function(apiResponse) {
         var body = "";
         apiResponse.on("data", function(chunk) {
           body += chunk;
         });
         apiResponse.on("end", function() {
-          var weather = JSON.parse(body);
-          weatherString = weather.weather[0].description;
-          weatherString += ", temperature " + Math.round(weather.main.temp - 273);
-          weatherString += " degrees, wind " + Math.round(weather.wind.speed * 3.6) +  " km/h"
-          client.set("currentweather", weatherString);
-          client.expire("currentweather", 60);
-          writeResponse(response, weatherString);
+          var weatherObject = {}
+          weatherObject.location = query
+          try {
+            var weather = JSON.parse(body);
+            weatherObject.description = weather.weather[0].description;
+            weatherObject.temperature = Math.round(weather.main.temp - 273);
+            weatherObject.wind = Math.round(weather.wind.speed * 3.6);
+          } catch (error) {
+            console.log("Error during json parse: ", error);
+            weatherObject.error = error
+          }
+          client.set("currentweather-" + query, JSON.stringify(weatherObject));
+          client.expire("currentweather-" + query, 10);
+          writeResponse(response, JSON.stringify(weatherObject));
         });
       }).on("error", function(e) {
         console.log("Got error: ", e);
       });
     } else {
-      console.log("Using cached weather data");
-      writeResponse(response, weatherString);
+      console.log("Using cached weather data", weatherObjectString);
+      writeResponse(response, weatherObjectString);
     }
   });
 })
@@ -59,8 +77,11 @@ process.on('SIGTERM', function () {
 });
 
 function writeResponse(res, weather) {
-  res.writeHead(200, {"Content-Type": "text/html"});
-  res.end("Current weather in Cologne: " + weather + "\n");
+  res.writeHead(200, {"Content-Type": "application/json",
+                      "Access-Control-Allow-Origin": "*",
+                      "Access-Control-Allow-Headers": "Content-Type",
+                      'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE'});
+  res.end(weather);
 }
 
 console.log("Server running at 0.0.0.0:" + httpPort + "/");
