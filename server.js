@@ -4,7 +4,7 @@ var http = require("http");
 var redis = require("redis");
 var url = require("url");
 
-var redisAddress = "redis",
+var redisAddress = process.env.CURRENTWEATHER_REDIS_PORT_6379_TCP_ADDR || "redis",
   redisPort = 6379,
   httpAddress = "0.0.0.0",
   httpPort = "1337",

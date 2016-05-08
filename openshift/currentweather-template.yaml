@@ -1,0 +1,338 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "currentweather"
+    annotations:
+      description: "This is currentweather, a NodeJS application utilizing redis and serving a HTML5 web user interface based on Patternfly."
+      tags: "instant-app,nodejs,redis,patternfly"
+      iconClass: "icon-nodejs"
+    labels:
+      template: "currentweather"
+  objects:
+    - kind: "ImageStream"
+      apiVersion: "v1"
+      metadata:
+        description: "This is nginx 1.8"
+        name: nginx
+      spec:
+        dockerImageRepository: goern/nginx-18-centos7
+      status:
+        tags:
+        - items:
+          -
+            dockerImageReference: goern/nginx-18-centos7@sha256:f6897b9aa1308bf405d40bfdcca24b98ce4948c948233a721c28bc6f368256e7
+            generation: 0
+            image: sha256:f6897b9aa1308bf405d40bfdcca24b98ce4948c948233a721c28bc6f368256e7
+          tag: latest
+    - kind: ImageStream
+      apiVersion: v1
+      metadata:
+        description: "This is redis 2.8"
+        name: redis
+      spec:
+        dockerImageRepository: goern/redis-28-centos7
+      status:
+        tags:
+        - items:
+          -
+            dockerImageReference: goern/redis-28-centos7@sha256:a6e4737daf000d42afe382c26f8626ba7adb9a878d9bcafb0819fc3332340c2d
+            generation: 0
+            image: sha256:a6e4737daf000d42afe382c26f8626ba7adb9a878d9bcafb0819fc3332340c2d
+          tag: latest
+    - kind: "ImageStream"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather"
+        annotations:
+          description: "Keeps track of changes in the backend service image"
+    - kind: "ImageStream"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather-ui"
+        annotations:
+          description: "Keeps track of changes in the frontend ui image"
+    - kind: "ConfigMap"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather-config"
+        namespace: "default"
+      data:
+        openweathermap.apikey: "182564eaf55f709a58a13c40086fb5bb"
+    - kind: "Service"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather"
+        labels:
+          app: "currentweather"
+        annotations:
+          description: "Exposes and load balances the application pods"
+      spec:
+        ports:
+          -
+            name: "currentweather"
+            port: 1337
+            targetPort: 1337
+        selector:
+          app: "currentweather"
+    - kind: "Service"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather-ui"
+        labels:
+          app: "currentweather"
+        annotations:
+          description: "Exposes and load balances the web user interface"
+      spec:
+        ports:
+          -
+            name: "web"
+            port: 80
+            targetPort: 8080
+        selector:
+          app: "currentweather-ui"
+    - kind: "Service"
+      apiVersion: "v1"
+      metadata:
+        name: "${REDIS_SERVICE_NAME}"
+      spec:
+        ports:
+          -
+            name: "redis"
+            protocol: "TCP"
+            port: 6379
+            targetPort: 6379
+            nodePort: 0
+        selector:
+          name: "${REDIS_SERVICE_NAME}"
+        portalIP: ""
+        type: "ClusterIP"
+        sessionAffinity: "None"
+      status:
+        loadBalancer: {}
+    - kind: "DeploymentConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "${REDIS_SERVICE_NAME}"
+        annotations:
+          description: "Defines how to deploy the redis for currentweather"
+        labels:
+          app: "currentweather"
+      spec:
+        strategy:
+          type: "Recreate"
+        triggers:
+          -
+            type: "ConfigChange"
+        replicas: 1
+        selector:
+          name: "${REDIS_SERVICE_NAME}"
+        template:
+          metadata:
+            name: "${REDIS_SERVICE_NAME}"
+            labels:
+              name: "${REDIS_SERVICE_NAME}"
+          spec:
+            containers:
+              - name: "redis"
+                image: "${REDIS_IMAGE_NAME}"
+                ports:
+                  - containerPort: 6379
+                env:
+                  - name: "MASTER"
+                    value: "true"
+                volumeMounts:
+                  - mountPath: /redis-master-data
+                    name: data
+            volumes:
+              - name: data
+                emptyDir: {}
+    - kind: "BuildConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather"
+        annotations:
+          description: "Defines how to build the currentweather backend"
+      spec:
+        source:
+          type: "Git"
+          git:
+            uri: "${SOURCE_REPOSITORY_URL}"
+            ref: "${SOURCE_REPOSITORY_REF}"
+          contextDir: "${CONTEXT_DIR}"
+        strategy:
+          type: "Source"
+          sourceStrategy:
+            from:
+              kind: "ImageStreamTag"
+              namespace: "openshift"
+              name: "nodejs:latest"
+        output:
+          to:
+            kind: "ImageStreamTag"
+            name: "currentweather:latest"
+        triggers:
+          -
+            type: "ImageChange"
+          -
+            type: "ConfigChange"
+    - kind: "BuildConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather-ui"
+        annotations:
+          description: "Defines how to build the currentweather frontend"
+      spec:
+        source:
+          type: "Git"
+          git:
+            uri: "${FRONTEND_SOURCE_REPOSITORY_URL}"
+            ref: "${FRONTEND_SOURCE_REPOSITORY_REF}"
+          contextDir: "${FRONTEND_CONTEXT_DIR}"
+        strategy:
+          type: "Docker"
+        output:
+          to:
+            kind: "ImageStreamTag"
+            name: "currentweather-ui:latest"
+        triggers:
+          -
+            type: "ConfigChange"
+    - kind: "DeploymentConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "${CURRENTWEATHER_SERVICE_NAME}"
+        annotations:
+          description: "Defines how to deploy the server backend for currentweather"
+        labels:
+          app: "currentweather"
+      spec:
+        strategy:
+          type: "Rolling"
+        triggers:
+          -
+            type: "ImageChange"
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - "currentweather"
+              from:
+                kind: "ImageStreamTag"
+                name: "currentweather:latest"
+          -
+            type: "ConfigChange"
+        replicas: 1
+        selector:
+          name: "${CURRENTWEATHER_SERVICE_NAME}"
+        template:
+          metadata:
+            name: "${CURRENTWEATHER_SERVICE_NAME}"
+            labels:
+              name: "${CURRENTWEATHER_SERVICE_NAME}"
+          spec:
+            containers:
+              -
+                name: "currentweather"
+                image: "currentweather"
+                ports:
+                  -
+                    containerPort: 1337
+                env:
+                  -
+                    name: "REDIS_SERVICE_NAME"
+                    value: "${REDIS_SERVICE_NAME}"
+                  - name: "OPENWEATHERMAP_APIKEY"
+                    description: "TODO remove when ConfigMap is supported by OpenShift"
+                    value: "182564eaf55f709a58a13c40086fb5bb"
+    - kind: "DeploymentConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "${FRONTEND_SERVICE_NAME}"
+        annotations:
+          description: "Defines how to deploy the UI for currentweather"
+        labels:
+          app: "currentweather"
+      spec:
+        strategy:
+          type: "Rolling"
+        triggers:
+          -
+            type: "ImageChange"
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - "{FRONTEND_SERVICE_NAME}"
+              from:
+                kind: "ImageStreamTag"
+                name: "currentweather-ui:latest"
+          -
+            type: "ConfigChange"
+        replicas: 1
+        selector:
+          name: "${FRONTEND_SERVICE_NAME}"
+        template:
+          metadata:
+            name: "${FRONTEND_SERVICE_NAME}"
+            labels:
+              name: "${FRONTEND_SERVICE_NAME}"
+          spec:
+            containers:
+              -
+                name: "currentweather-ui"
+                image: "currentweather-ui"
+                ports:
+                  -
+                    containerPort: 80
+    - kind: "Route"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather"
+        labels:
+          app: "currentweather"
+      spec:
+        host: "${APPLICATION_DOMAIN}"
+        to:
+          kind: "Service"
+          name: "${FRONTEND_SERVICE_NAME}"
+  parameters:
+    -
+      name: "SOURCE_REPOSITORY_URL"
+      description: "BACKEND: The URL of the repository with your application source code"
+      value: "https://github.com/luebken/currentweather.git"
+    -
+      name: "SOURCE_REPOSITORY_REF"
+      description: "BACKEND: Set this to a branch name, tag or other ref of your repository if you are not using the default branch"
+    -
+      name: "CONTEXT_DIR"
+      description: "BACKEND: Set this to the relative path to your project if it is not in the root of your repository"
+    -
+      name: "FRONTEND_SOURCE_REPOSITORY_URL"
+      description: "FRONTEND: The URL of the repository with your application source code"
+      value: "https://github.com/goern/currentweather-ui.git"
+    -
+      name: "FRONTEND_SOURCE_REPOSITORY_REF"
+      description: "FRONTEND: Set this to a branch name, tag or other ref of your repository if you are not using the default branch"
+      value: "feature/more-ui"
+    -
+      name: "FRONTEND_CONTEXT_DIR"
+      description: "FRONTEND: Set this to the relative path to your project if it is not in the root of your repository"
+    -
+      name: "APPLICATION_DOMAIN"
+      description: "The exposed hostname that will route to the currentweather service, if left blank a value will be defaulted."
+      value: ""
+    -
+      name: "REDIS_SERVICE_NAME"
+      description: "redis service name"
+      value: "currentweather-redis"
+    -
+      name: "REDIS_IMAGE_NAME"
+      description: "redis image name to be used for ${REDIS_SERVICE_NAME}"
+      value: "goern/redis-28-centos7"
+    -
+      name: "CURRENTWEATHER_SERVICE_NAME"
+      description: "currentweather service name"
+      value: "currentweather-backend"
+    -
+      name: "FRONTEND_SERVICE_NAME"
+      description: "currentweather-ui service name"
+      value: "currentweather-ui"
