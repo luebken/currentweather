@@ -35,20 +35,20 @@ docker-stop: ## Remove the stuff we built locally afterwards
 	docker network rm currentweather_nw || true
 
 kube-create: ## Create kubernetes rc and svc
-	kubectl create -f redis-rc.yml
-	kubectl create -f redis-svc.yml
-	kubectl create -f currentweather-cm.yml
-	kubectl create -f currentweather-rc.yml
-	kubectl create -f currentweather-svc.yml
+	kubectl create -f kubernetes/redis-rc.yml
+	kubectl create -f kubernetes/redis-svc.yml
+	kubectl create -f kubernetes/currentweather-cm.yml
+	kubectl create -f kubernetes/currentweather-rc.yml
+	kubectl create -f kubernetes/currentweather-svc.yml
 
 kube-delete: ## Delete rc, cm and svc
 	kubectl scale --replicas=0 rc redis
-	kubectl delete -f redis-rc.yml
-	kubectl delete -f redis-svc.yml
+	kubectl delete replicationcontroller redis
+	kubectl delete service redis
 	kubectl scale --replicas=0 rc currentweather
-	kubectl delete -f currentweather-cm.yml
-	kubectl delete -f currentweather-rc.yml
-	kubectl delete -f currentweather-svc.yml
+	kubectl delete configmap currentweather
+	kubectl delete replicationcontroller currentweather
+	kubectl delete service currentweather
 
 test:
 	curl localhost:1337/status/Bonn,DE
