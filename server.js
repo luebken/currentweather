@@ -4,10 +4,10 @@ var http = require("http");
 var redis = require("redis");
 var url = require("url");
 
-var redisAddress = process.env.CURRENTWEATHER_REDIS_PORT_6379_TCP_ADDR || "redis",
-  redisPort = 6379,
-  httpAddress = "0.0.0.0",
-  httpPort = "1337",
+var redisAddress = "redis", // This is service discovery by DNS, and the name
+  redisPort = 6379,         // is set by using REDIS_SERVICE_NAME while
+  httpAddress = "0.0.0.0",  // doing `oc new-app` or via `docker --link`
+  httpPort = "1337",        // or ...
   openWeatherMapApiKey = process.env.OPENWEATHERMAP_APIKEY;
 
 if (openWeatherMapApiKey == "" ) {

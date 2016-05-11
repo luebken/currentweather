@@ -38,8 +38,7 @@
       status:
         tags:
         - items:
-          -
-            dockerImageReference: goern/redis-28-centos7
+          - dockerImageReference: goern/redis-28-centos7
           tag: latest
     - kind: "ImageStream"
       apiVersion: "v1"
@@ -361,7 +360,7 @@
     -
       name: "REDIS_SERVICE_NAME"
       description: "redis service name"
-      value: "currentweather-redis"
+      value: "redis"
     -
       name: "BACKEND_SERVICE_NAME"
       description: "currentweather service name"
