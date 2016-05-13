@@ -204,6 +204,12 @@
                 image: "currentweather"
                 ports:
                   - containerPort: 1337
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 1337
+                  initialDelaySeconds: 30
+                  timeoutSeconds: 1
                 env:
                   - name: "OPENWEATHERMAP_APIKEY"
                     description: "TODO remove when ConfigMap is supported by OpenShift"
