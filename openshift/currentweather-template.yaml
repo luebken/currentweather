@@ -13,45 +13,41 @@
     - kind: "ImageStream"
       apiVersion: "v1"
       metadata:
-        description: "This is nginx 1.8"
-        name: nginx
-      spec:
-        dockerImageRepository: goern/nginx-18-centos7
-        tags:
-          - name: latest
-    - kind: "ImageStream"
-      apiVersion: "v1"
-      metadata:
         description: "This is a s2i for nginx 1.8"
         name: "s2i-nginx"
       spec:
         dockerImageRepository: "goern/s2i-nginx"
       tags:
-        - name: latest
+        - name: "latest"
     - kind: "ImageStream"
       apiVersion: v1
       metadata:
         description: "This is redis 2.8"
-        name: redis
+        name: "redis"
       spec:
-        dockerImageRepository: goern/redis-28-centos7
+        dockerImageRepository: "goern/redis-28-centos7"
       status:
-        tags:
-        - items:
-          - dockerImageReference: goern/redis-28-centos7
-          tag: latest
+        dockerImageRepository: ""
     - kind: "ImageStream"
       apiVersion: "v1"
       metadata:
         name: "currentweather"
+        creationTimestamp: null
         annotations:
           description: "Keeps track of changes in the backend microservice image"
+        spec: {}
+        status:
+          dockerImageRepository: ""
     - kind: "ImageStream"
       apiVersion: "v1"
       metadata:
         name: "currentweather-ui"
+        creationTimestamp: null
         annotations:
           description: "Keeps track of changes in the frontend ui image"
+        spec: {}
+        status:
+          dockerImageRepository: ""
     - kind: "ConfigMap"
       apiVersion: "v1"
       metadata:
