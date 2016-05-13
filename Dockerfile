@@ -1,7 +1,7 @@
 FROM node:0.10-slim
 MAINTAINER matthias.luebken@gmail.com
 
-LABEL Version="1.0.0"
+LABEL Version="2.0.0"
 
 WORKDIR /app
 
