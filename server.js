@@ -46,6 +46,7 @@ server = http.createServer(function (request, response) {
           weatherObject.location = query
           try {
             var weather = JSON.parse(body);
+            weatherObject.owm_id = weather.weather[0].id;
             weatherObject.description = weather.weather[0].description;
             weatherObject.temperature = Math.round(weather.main.temp - 273);
             weatherObject.wind = Math.round(weather.wind.speed * 3.6);
