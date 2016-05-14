@@ -84,7 +84,7 @@ app.listen(httpPort, function () {
 process.on('SIGTERM', function () {
   winston.info("Received SIGTERM. Exiting.")
 
-  server.close(function () {
-    process.exit(0);
-  });
+  app.close();
+  process.exit(0);
+
 });
