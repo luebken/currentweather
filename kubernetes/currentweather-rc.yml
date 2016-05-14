@@ -20,3 +20,9 @@ spec:
                 configMapKeyRef:
                     name: currentweather-config
                     key: openweathermap.apikey
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 1337
+            initialDelaySeconds: 30
+            timeoutSeconds: 1

@@ -1,16 +1,36 @@
-Currentweather
-====================
+# Currentweather
 
-A sample application for using NodeJS and Redis with Docker et al. It pings an external API and caches the data in an Redis cache.
+Currentweather is sample application for using NodeJS and Redis with Docker et
+al. On request, it queries an [external API](http://openweathermap.org/api) and
+caches the retrieved data in an Redis cache.
 
-### Prerequisites
+## Design and Implementation considerations
+
+While designing and implementing Currentweather on the set of platforms ([Docker](https://www.docker.com/),
+[Giant Swarm](https://giantswarm.io/), [OpenShift](https://www.openshift.org/)) one of the motivations is to design a portable application
+with a low amount of [technical debt](https://en.wikipedia.org/wiki/Technical_debt).
+
+[Winston](https://github.com/winstonjs/winston) is used to implement asynchronous logging, rather than nodejs's own
+synchronous logging using `console.log()`. This is consider a 'performance good
+practice', as synchronous method calls will add up to lower performance on
+high traffic sites.
+
+Implementing the currentweather API [express](http://expressjs.com/) is used, it provides a variety
+of functions common to webservices, for example: session handling, CORS handling
+and routing.
+
+## Prerequisites
 
 * Have Kubernetes & Docker running.
+* if you want to deploy to giantswarm, set up your SDK.
 * if you want do deploy to OpenShift, make your you 'oc login' somewhere first
 
 ### JavaScript Code
 
-The service is implemented in the file [server.js](server.js). it basically creates a webserver and on root request queries the [openweather API](http://api.openweathermap.org/data/2.5/weather?q=Cologne) caches the result in Redis and extracts and returns the current weather for Cologne.
+The service is implemented in the file [server.js](server.js). it basically
+creates a webservice and on root request queries the [openweather API](http://api.openweathermap.org/data/2.5/weather?q=Cologne)
+caches the result in Redis and extracts and returns the current weather for some
+cities.
 
 ### Testing the service locally with Docker
 
@@ -47,7 +67,7 @@ See the [downstream repository](https://github.com/giantswarm/giantswarm-current
 ## Deploying to OpenShift
 
 Use `oc  create -f openshift/currentweather-template.yaml` to create a currentweather
-application template. After that is successfully done, you can 'oc new-app currentweather'
+application template. After that is successfully done, you can `oc new-app currentweather`
 to create a new currentweather app in your project.
 
 WARNING: This required at least OpenShift Origin 1.1.1, as currentweather uses

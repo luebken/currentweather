@@ -1,8 +1,11 @@
 /* global server */
 /* global client */
-var http = require("http");
-var redis = require("redis");
-var url = require("url");
+var http = require("http"),
+  winston = require('winston'),
+  redis = require("redis"),
+  express = require('express'),
+  cors = require('cors'),
+  app = express();
 
 var redisAddress = "redis", // This is service discovery by DNS, and the name
   redisPort = 6379,         // is set by using REDIS_SERVICE_NAME while
@@ -11,36 +14,33 @@ var redisAddress = "redis", // This is service discovery by DNS, and the name
   openWeatherMapApiKey = process.env.OPENWEATHERMAP_APIKEY;
 
 if (openWeatherMapApiKey == "" ) {
-  console.log("Missing mandatory env OPENWEATHERMAP_APIKEY");
+  winston.error("Missing mandatory env OPENWEATHERMAP_APIKEY");
   process.exit(1);
 }
 
-client = redis.createClient(redisPort, redisAddress);
-client.on("error", function (err) {
-  console.log("Catching error from Redis client to enable reconnect.");
-  console.log(err);
+redis_client = redis.createClient(redisPort, redisAddress);
+redis_client.on("error", function (err) {
+  winston.warn("Catching error from Redis client to enable reconnect.");
+  winston.error(err);
 });
 
-server = http.createServer(function (request, response) {
-  uurl = request.url.match(/^\/status\/(.+)/)
-  var query
-  if(uurl != null && uurl[1] != null) {
-    query = uurl[1]
-  } else {
-    console.log("Didn't find query for request ", request.url)
-    response.writeHead(404);
-    response.end("Wrong query try /status/Bonn,DE");
-  }
+app.use(cors());
 
-  client.get("currentweather-" + query, function (err, weatherObjectString) {
+app.get('/status/:q', cors(), function (req, res, next) {
+  var query = req.params.q
+  winston.info(Date.now() + " some client requested weather data for ", query);
+
+  redis_client.get("currentweather-" + query, function (err, weatherObjectString) {
     if (weatherObjectString == null) {
-      console.log(Date.now() + " Querying live weather data for ", query);
+      winston.info(Date.now() + " Querying live weather data for ", query);
       var url = "http://api.openweathermap.org/data/2.5/weather?q=" + query + "&appid=" + openWeatherMapApiKey;
+
       http.get(url, function(apiResponse) {
         var body = "";
         apiResponse.on("data", function(chunk) {
           body += chunk;
         });
+
         apiResponse.on("end", function() {
           var weatherObject = {}
           weatherObject.location = query
@@ -50,38 +50,41 @@ server = http.createServer(function (request, response) {
             weatherObject.temperature = Math.round(weather.main.temp - 273);
             weatherObject.wind = Math.round(weather.wind.speed * 3.6);
           } catch (error) {
-            console.log("Error during json parse: ", error);
+            winston.error("Error during json parse: ", error);
             weatherObject.error = error
           }
-          client.set("currentweather-" + query, JSON.stringify(weatherObject));
-          client.expire("currentweather-" + query, 10);
-          writeResponse(response, JSON.stringify(weatherObject));
+          redis_client.set("currentweather-" + query, JSON.stringify(weatherObject));
+          redis_client.expire("currentweather-" + query, 10);
+          res.json(weatherObject);
         });
       }).on("error", function(e) {
-        console.log("Got error: ", e);
+        winston.error("Got error: ", e);
       });
     } else {
-      console.log("Using cached weather data", weatherObjectString);
-      writeResponse(response, weatherObjectString);
+      winston.info("Using cached weather data", weatherObjectString);
+      res.send(weatherObjectString);
     }
-  });
-})
-
-server.listen(httpPort, httpAddress);
-
-process.on('SIGTERM', function () {
-  console.log("Received SIGTERM. Exiting.")
-  server.close(function () {
-    process.exit(0);
   });
 });
 
-function writeResponse(res, weather) {
-  res.writeHead(200, {"Content-Type": "application/json",
-                      "Access-Control-Allow-Origin": "*",
-                      "Access-Control-Allow-Headers": "Content-Type",
-                      'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE'});
-  res.end(weather);
-}
+app.get('/healthz', cors(), function (req, res, next) {
+  var healthzObject = {}
 
-console.log("Server running at 0.0.0.0:" + httpPort + "/");
+  healthzObject.currentweather_api_version = 'v1';
+  healthzObject.redis_version = redis_client.server_info.redis_version;
+
+  // TODO if redis_client is not ready, we should not return 200
+  res.json(healthzObject);
+})
+
+app.listen(httpPort, function () {
+  winston.info("Server running at 0.0.0.0:" + httpPort + "/");
+});
+
+process.on('SIGTERM', function () {
+  winston.info("Received SIGTERM. Exiting.")
+
+  app.close();
+  process.exit(0);
+
+});
