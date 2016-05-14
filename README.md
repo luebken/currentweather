@@ -1,4 +1,4 @@
-Currentweather 
+Currentweather
 ====================
 
 A sample application for using NodeJS and Redis with Docker et al. It pings an external API and caches the data in an Redis cache.
@@ -6,6 +6,7 @@ A sample application for using NodeJS and Redis with Docker et al. It pings an e
 ### Prerequisites
 
 * Have Kubernetes & Docker running.
+* if you want do deploy to OpenShift, make your you 'oc login' somewhere first
 
 ### JavaScript Code
 
@@ -43,3 +44,20 @@ If you have added a rule to Virtualbox etc you can test it and run something lik
 See the [downstream repository](https://github.com/giantswarm/giantswarm-currentweather
 ) for a detailed description on how to get this running on Giant Swarm.
 
+## Deploying to OpenShift
+
+Use `oc  create -f openshift/currentweather-template.yaml` to create a currentweather
+application template. After that is successfully done, you can 'oc new-app currentweather'
+to create a new currentweather app in your project.
+
+WARNING: This required at least OpenShift Origin 1.1.1, as currentweather uses
+a ConfigMap to store the openweathermap API key.
+
+### CentOS based containers
+
+All container images used within an OpenShift depoyments are based on CentOS7,
+as CentOS7 and Red Hat Enterprise Linux are the only operating systems OpenShift
+is running on. To prevent hickups between the user space and kernel space (see
+  also [Architecting Containers Part 1: Why Understanding User Space vs. Kernel Space Matters](http://rhelblog.redhat.com/2015/07/29/architecting-containers-part-1-user-space-vs-kernel-space/))
+all container images are based on CentOS7, rather than the canonical choices up
+on docker hub.

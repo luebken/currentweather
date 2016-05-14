@@ -1,0 +1,349 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "currentweather"
+    annotations:
+      description: "This is currentweather, a NodeJS application utilizing redis and serving a HTML5 web user interface based on Patternfly."
+      tags: "instant-app,nodejs,redis,patternfly"
+      iconClass: "icon-nodejs"
+    labels:
+      template: "currentweather"
+  objects:
+    - kind: "ImageStream"
+      apiVersion: "v1"
+      metadata:
+        description: "This is a s2i for nginx 1.8"
+        name: "s2i-nginx"
+      spec:
+        dockerImageRepository: "goern/s2i-nginx"
+      tags:
+        - name: "latest"
+    - kind: "ImageStream"
+      apiVersion: v1
+      metadata:
+        description: "This is redis 2.8"
+        name: "redis"
+      spec:
+        dockerImageRepository: "goern/redis-28-centos7"
+      status:
+        dockerImageRepository: ""
+    - kind: "ImageStream"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather"
+        creationTimestamp: null
+        annotations:
+          description: "Keeps track of changes in the backend microservice image"
+        spec: {}
+        status:
+          dockerImageRepository: ""
+    - kind: "ImageStream"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather-ui"
+        creationTimestamp: null
+        annotations:
+          description: "Keeps track of changes in the frontend ui image"
+        spec: {}
+        status:
+          dockerImageRepository: ""
+    - kind: "ConfigMap"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather-config"
+        namespace: "default"
+      data:
+        openweathermap.apikey: "182564eaf55f709a58a13c40086fb5bb"
+    - kind: "Service"
+      apiVersion: "v1"
+      metadata:
+        name: "${BACKEND_SERVICE_NAME}"
+        labels:
+          app: "currentweather"
+        annotations:
+          description: "Exposes and load balances the application pods"
+      spec:
+        ports:
+          -
+            name: "currentweather"
+            port: 80
+            targetPort: 1337
+        selector:
+          name: "${BACKEND_SERVICE_NAME}"
+    - kind: "Service"
+      apiVersion: "v1"
+      metadata:
+        name: "${FRONTEND_SERVICE_NAME}"
+        labels:
+          app: "currentweather"
+        annotations:
+          description: "Exposes and load balances the web user interface"
+      spec:
+        ports:
+          -
+            name: "web"
+            port: 80
+            targetPort: 8080
+        selector:
+          name: "${FRONTEND_SERVICE_NAME}"
+    - kind: "Service"
+      apiVersion: "v1"
+      metadata:
+        name: "${REDIS_SERVICE_NAME}"
+      spec:
+        ports:
+          -
+            name: "redis"
+            protocol: "TCP"
+            port: 6379
+            targetPort: 6379
+            nodePort: 0
+        selector:
+          name: "${REDIS_SERVICE_NAME}"
+        portalIP: ""
+        type: "ClusterIP"
+        sessionAffinity: "None"
+      status:
+        loadBalancer: {}
+    - kind: "BuildConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "currentweather"
+        annotations:
+          description: "Defines how to build the currentweather backend"
+      spec:
+        completionDeadlineSeconds: 480
+        source:
+          type: "Git"
+          git:
+            uri: "${BACKEND_REPOSITORY_URL}"
+            ref: "${BACKEND_REPOSITORY_REF}"
+          contextDir: "${CONTEXT_DIR}"
+        strategy:
+          type: "Source"
+          sourceStrategy:
+            from:
+              kind: "ImageStreamTag"
+              namespace: "openshift"
+              name: "nodejs:latest"
+        output:
+          to:
+            kind: "ImageStreamTag"
+            name: "currentweather:latest"
+        triggers:
+          - type: "ImageChange"
+          - type: "ConfigChange"
+          - type: "GitHub"
+            github:
+              secret: "thee7reiteeN"
+    - kind: "BuildConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "${FRONTEND_SERVICE_NAME}-s2i-nginx"
+        annotations:
+          description: "Defines a s2i based build of the currentweather frontend"
+      spec:
+        completionDeadlineSeconds: 480
+        source:
+          type: "Git"
+          git:
+            uri: "${FRONTEND_SOURCE_REPOSITORY_URL}"
+            ref: "${FRONTEND_SOURCE_REPOSITORY_REF}"
+          contextDir: "${FRONTEND_CONTEXT_DIR}"
+        strategy:
+          type: "Source"
+          sourceStrategy:
+            from:
+              kind: "ImageStreamTag"
+              name: "s2i-nginx:latest"
+        output:
+          to:
+            kind: "ImageStreamTag"
+            name: "currentweather-ui:latest"
+        triggers:
+          - type: "ConfigChange"
+          - type: "GitHub"
+            github:
+              secret: "peiThisaih6aghu8phat6Qui"
+    - kind: "DeploymentConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "${BACKEND_SERVICE_NAME}"
+        annotations:
+          description: "Defines how to deploy the server backend for currentweather"
+        labels:
+          app: "currentweather"
+      spec:
+        strategy:
+          type: "Rolling"
+        triggers:
+          -
+            type: "ImageChange"
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - "currentweather"
+              from:
+                kind: "ImageStreamTag"
+                name: "currentweather:latest"
+          -
+            type: "ConfigChange"
+        replicas: 3
+        selector:
+          name: "${BACKEND_SERVICE_NAME}"
+        template:
+          metadata:
+            name: "${BACKEND_SERVICE_NAME}"
+            labels:
+              name: "${BACKEND_SERVICE_NAME}"
+          spec:
+            containers:
+              -
+                name: "${BACKEND_SERVICE_NAME}"
+                image: "currentweather"
+                ports:
+                  - containerPort: 1337
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 1337
+                  initialDelaySeconds: 30
+                  timeoutSeconds: 1
+                env:
+                  - name: "OPENWEATHERMAP_APIKEY"
+                    description: "TODO remove when ConfigMap is supported by OpenShift"
+                    value: "182564eaf55f709a58a13c40086fb5bb"
+    - kind: "DeploymentConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "${REDIS_SERVICE_NAME}"
+        annotations:
+          description: "Defines how to deploy the redis for currentweather"
+        labels:
+          app: "currentweather"
+      spec:
+        strategy:
+          type: "Rolling"
+        triggers:
+          -
+            type: "ConfigChange"
+        replicas: 1
+        selector:
+          name: "${REDIS_SERVICE_NAME}"
+        template:
+          metadata:
+            name: "${REDIS_SERVICE_NAME}"
+            labels:
+              name: "${REDIS_SERVICE_NAME}"
+          spec:
+            containers:
+              - name: "redis"
+                image: "redis"
+                ports:
+                  - containerPort: 6379
+                env:
+                  - name: "MASTER"
+                    value: "true"
+                volumeMounts:
+                  - mountPath: /redis-master-data
+                    name: data
+            volumes:
+              - name: data
+                emptyDir: {}
+    - kind: "DeploymentConfig"
+      apiVersion: "v1"
+      metadata:
+        name: "${FRONTEND_SERVICE_NAME}"
+        annotations:
+          description: "Defines how to deploy the UI for currentweather"
+        labels:
+          app: "currentweather"
+      spec:
+        strategy:
+          type: "Rolling"
+        triggers:
+          - type: "ImageChange"
+            imageChangeParams:
+              automatic: true
+              containerNames:
+                - "{FRONTEND_SERVICE_NAME}"
+              from:
+                kind: "ImageStreamTag"
+                name: "currentweather-ui:latest"
+          - type: "ConfigChange"
+        replicas: 2
+        selector:
+          name: "${FRONTEND_SERVICE_NAME}"
+        template:
+          metadata:
+            name: "${FRONTEND_SERVICE_NAME}"
+            labels:
+              name: "${FRONTEND_SERVICE_NAME}"
+          spec:
+            containers:
+              - name: "${FRONTEND_SERVICE_NAME}"
+                image: "currentweather-ui"
+                ports:
+                  - containerPort: 8080
+    - kind: "Route"
+      apiVersion: "v1"
+      metadata:
+        name: "frontend"
+        labels:
+          app: "currentweather"
+      spec:
+        host: "${APPLICATION_DOMAIN}"
+        to:
+          kind: "Service"
+          name: "${FRONTEND_SERVICE_NAME}"
+    - kind: "Route"
+      apiVersion: "v1"
+      metadata:
+        name: "backend"
+        labels:
+          app: "currentweather"
+      spec:
+        host: ""
+        to:
+          kind: "Service"
+          name: "${BACKEND_SERVICE_NAME}"
+  parameters:
+    -
+      name: "APPLICATION_DOMAIN"
+      description: "The exposed hostname that will route to the currentweather service, if left blank a value will be defaulted."
+      value: ""
+    -
+      name: "BACKEND_REPOSITORY_URL"
+      description: "BACKEND: The URL of the repository with your application source code"
+      value: "https://github.com/goern/currentweather.git"
+    -
+      name: "BACKEND_REPOSITORY_REF"
+      description: "BACKEND: Set this to a branch name, tag or other ref of your repository if you are not using the default branch"
+      value: "feature/openshift"
+    -
+      name: "CONTEXT_DIR"
+      description: "BACKEND: Set this to the relative path to your project if it is not in the root of your repository"
+    -
+      name: "FRONTEND_SOURCE_REPOSITORY_URL"
+      description: "FRONTEND: The URL of the repository with your application source code"
+      value: "https://github.com/goern/currentweather-ui.git"
+    -
+      name: "FRONTEND_SOURCE_REPOSITORY_REF"
+      description: "FRONTEND: Set this to a branch name, tag or other ref of your repository if you are not using the default branch"
+      value: "feature/more-ui"
+    -
+      name: "FRONTEND_CONTEXT_DIR"
+      description: "FRONTEND: Set this to the relative path to your project if it is not in the root of your repository"
+    -
+      name: "REDIS_SERVICE_NAME"
+      description: "redis service name"
+      value: "redis"
+    -
+      name: "BACKEND_SERVICE_NAME"
+      description: "currentweather service name"
+      value: "currentweather-backend"
+    -
+      name: "FRONTEND_SERVICE_NAME"
+      description: "currentweather-ui service name"
+      value: "currentweather-ui"
