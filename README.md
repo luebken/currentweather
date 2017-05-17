@@ -1,6 +1,8 @@
 Currentweather
 ====================
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/luebken/currentweather.svg)](https://greenkeeper.io/)
+
 A sample application for using NodeJS and Redis with Docker et al. It pings an external API and caches the data in an Redis cache.
 
 ### Prerequisites
